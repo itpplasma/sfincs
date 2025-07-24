@@ -4,7 +4,7 @@
 # that includes MUMPS support, built using install_petsc_mumps.sh
 
 # IMPORTANT: Set PETSC_DIR before using this makefile:
-# export PETSC_DIR=/path/to/sfincs/fortran/version3/thirdparty/petsc-3.20.6/arch-macos-opt
+# export PETSC_DIR=/path/to/sfincs/thirdparty/petsc-3.23.4/arch-macos-opt
 
 # These next 2 includes set FC, FLINKER, and PETSC_LIB:
 include ${PETSC_DIR}/lib/petsc/conf/petscvariables
