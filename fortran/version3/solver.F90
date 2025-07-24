@@ -1079,30 +1079,31 @@ contains
        stop
     end if
 
-    ! Detection of available solvers
-    isAParallelDirectSolverInstalled = .false.
-    
 #ifdef PETSC_HAVE_MUMPS
     isAParallelDirectSolverInstalled = .true.
     if (masterProc) then
-       print *,"MUMPS support detected at compile time"
+       print *,"mumps detected"
+    end if
+#else
+    whichParallelSolverToFactorPreconditioner = 2
+    if (masterProc) then
+       print *,"mumps not detected"
     end if
 #endif
 
 #ifdef PETSC_HAVE_SUPERLU_DIST
     isAParallelDirectSolverInstalled = .true.
     if (masterProc) then
-       print *,"SuperLU_DIST support detected at compile time"
+       print *,"superlu_dist detected"
+    end if
+#else
+    if (masterProc) then
+       print *,"superlu_dist not detected"
+    end if
+    if (whichParallelSolverToFactorPreconditioner==2) then
+       whichParallelSolverToFactorPreconditioner = 1
     end if
 #endif
-
-    ! Even if not detected at compile time, we can try at runtime
-    if (.not. isAParallelDirectSolverInstalled) then
-       isAParallelDirectSolverInstalled = .true. ! Assume available, will check later
-       if (masterProc) then
-          print *,"No parallel solver detected at compile time, will check at runtime..."
-       end if
-    end if
 
     if ((.not. isAParallelDirectSolverInstalled) .and. (numProcs > 1)) then
        if (masterProc) then
