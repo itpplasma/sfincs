@@ -16,6 +16,7 @@ fortran/multiSpecies/host.list
 fortran/multiSpecies/job.hydra
 fortran/singleSpecies/host.list
 fortran/version3/testDevDir/
+fortran/version3/thirdparty/
 sfincsBinary*
 .DS_Store
 sfincsJob*
