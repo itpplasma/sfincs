@@ -1,0 +1,33 @@
+--- a/solver.F90
++++ b/solver.F90
+@@ -225,11 +225,13 @@
+        if (isAParallelDirectSolverInstalled) then
+           select case (whichParallelSolverToFactorPreconditioner)
+           case (1)
++#ifdef PETSC_HAVE_MUMPS
+              call PCFactorSetMatSolverType(preconditionerContext, MATSOLVERMUMPS, ierr)
+            if (discreteAdjointOption .eqv. .false.) then
+               call PCFactorSetMatSolverType(preconditionerContext_adjoint, MATSOLVERMUMPS, ierr)
+            end if
+-#if (PETSC_VERSION_MAJOR < 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR < 5))
++#endif
++#if defined(PETSC_HAVE_MUMPS) && (PETSC_VERSION_MAJOR < 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR < 5))
+              ! The functions MatMumpsSetICNTL were introduced in PETSc 3.5.
+              ! For earlier versions, we can achieve a similar result with the following hack:
+              call PetscOptionsInsertString("-mat_mumps_cntl_1 1e-6 -mat_mumps_icntl_4 2", ierr)
+@@ -417,6 +419,7 @@
+                 ! No need to do anything here.
+              else
+                 ! This must be whichParallelSolverToFactorPreconditioner==1, so we're using MUMPS.
++#ifdef PETSC_HAVE_MUMPS
+                 if (saveFactorisedMatrices) then
+                    !PRINT *,"Here comes MatMumpsGetInfog"
+                    allocate(infog(40))
+@@ -453,6 +456,7 @@
+                    
+                    deallocate(infog)
+                 end if
++#endif
+              end if
+           end if
+           

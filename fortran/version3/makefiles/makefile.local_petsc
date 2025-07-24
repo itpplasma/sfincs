@@ -1,0 +1,36 @@
+# -*- mode: makefile -*-
+#
+# This makefile is used for macOS systems with a locally built PETSc
+# that includes MUMPS support, built using install_petsc_mumps.sh
+
+# IMPORTANT: Set PETSC_DIR before using this makefile:
+# export PETSC_DIR=/path/to/sfincs/fortran/version3/thirdparty/petsc-3.20.6/arch-macos-opt
+
+# These next 2 includes set FC, FLINKER, and PETSC_LIB:
+include ${PETSC_DIR}/lib/petsc/conf/petscvariables
+include ${PETSC_DIR}/lib/petsc/conf/petscrules
+
+# The variable LIBSTELL_DIR should either be "mini_libstell", if you use this reduced version of libstell
+# that comes packaged with SFINCS, or else it should point to a directory containing libstell .mod files
+# elsewhere on your system.
+LIBSTELL_DIR=mini_libstell
+
+# The variable LIBSTELL_FOR_SFINCS should either be "mini_libstell/mini_libstell.a", if you use this reduced version of libstell
+# that comes packaged with SFINCS, or else it should point to a libstell.a library elsewhere on your system.
+LIBSTELL_FOR_SFINCS=mini_libstell/mini_libstell.a
+
+# Any other flags for compiling, such as -I include flags:
+EXTRA_COMPILE_FLAGS = -ffree-line-length-none -fallow-argument-mismatch -I/opt/homebrew/include
+
+# Any other flags for linking, such as -l library flags:
+# NetCDF from Homebrew
+EXTRA_LINK_FLAGS = -L/opt/homebrew/lib -lnetcdff -lnetcdf
+
+# The next parameters are used only for running and testing selected examples using "make test".
+
+# For "make test", are runs submitted using a batch system (such as PBS)?  
+# The value of this variable must be "yes" or "no".
+SFINCS_IS_A_BATCH_SYSTEM_USED=no
+
+# This next line matters only if a batch system is used:
+SFINCS_COMMAND_TO_SUBMIT_JOB=

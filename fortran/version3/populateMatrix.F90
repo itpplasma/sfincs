@@ -55,7 +55,7 @@
     PetscLogDouble :: time1, time2
     PetscScalar, dimension(:,:), allocatable :: ddthetaToUse, ddzetaToUse
     PetscScalar, dimension(:,:), allocatable :: tempMatrix, tempMatrix2, extrapMatrix
-    double precision :: myMatInfo(MAT_INFO_SIZE)
+    MatInfo :: myMatInfo
     integer :: NNZ, NNZAllocated, NMallocs
     PetscScalar :: CHat_element, dfMdx, preFactor, preFactorJ,  CHat_elementJ !! preFactor, preFactorJ Added by AI (2017-09) 
  !! CHat_elementJ added by AM 2018-01
@@ -3166,9 +3166,9 @@
 
 
     call MatGetInfo(matrix, MAT_GLOBAL_SUM, myMatInfo, ierr)
-    NNZ = nint(myMatInfo(MAT_INFO_NZ_USED))
-    NNZAllocated = nint(myMatInfo(MAT_INFO_NZ_ALLOCATED))
-    NMallocs = nint(myMatInfo(MAT_INFO_MALLOCS))
+    NNZ = nint(myMatInfo%nz_used)
+    NNZAllocated = nint(myMatInfo%nz_allocated)
+    NMallocs = nint(myMatInfo%mallocs)
     if (masterProc) then
        print *,"# of nonzeros in ",trim(whichMatrixName)," matrix:",NNZ, ", allocated:",NNZAllocated, &
             ", mallocs:",NMallocs," (should be 0)"

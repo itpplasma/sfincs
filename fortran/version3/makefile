@@ -62,8 +62,11 @@ mini_libstell/mini_libstell.a:
 	$(MAKE) -C mini_libstell
 
 # Automatic variables like $@ are documented here: http://www.gnu.org/software/make/manual/make.html#Automatic-Variables
-libsfincs.a: $(OBJ_FILES)
-	ar rcs $@ $(OBJ_FILES)
+petsc_wrapper.o: petsc_wrapper.c
+	$(CC) $(CFLAGS) -I$(PETSC_DIR)/include -c petsc_wrapper.c
+
+libsfincs.a: $(OBJ_FILES) petsc_wrapper.o
+	ar rcs $@ $(OBJ_FILES) petsc_wrapper.o
 #	ar rcs $@ $(OBJ_FILES) mini_libstell/*.o
 #	ranlib $@
 

@@ -54,9 +54,39 @@
 
     if (useIterativeLinearSolver) then
        call KSPGetConvergedReason(myKSP, reason, ierr)
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
+       ! Newer PETSc with enum types
+       if (reason == KSP_CONVERGED_RTOL_NORMAL .or. reason == KSP_CONVERGED_ATOL_NORMAL .or. &
+           reason == KSP_CONVERGED_RTOL .or. reason == KSP_CONVERGED_ATOL .or. &
+           reason == KSP_CONVERGED_ITS .or. reason == KSP_CONVERGED_NEG_CURVE .or. &
+           reason == KSP_CONVERGED_STEP_LENGTH .or. reason == KSP_CONVERGED_HAPPY_BREAKDOWN) then
+#else
+       ! Older PETSc with integer values
        if (reason>0) then
+#endif
           if (masterProc) then
              print *,"Linear iteration (KSP) converged.  KSPConvergedReason = ", reason
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
+             ! Newer PETSc with enum types
+             if (reason == KSP_CONVERGED_RTOL_NORMAL) then
+                print *,"  KSP_CONVERGED_RTOL_NORMAL: "
+             else if (reason == KSP_CONVERGED_ATOL_NORMAL) then
+                print *,"  KSP_CONVERGED_ATOL_NORMAL: "
+             else if (reason == KSP_CONVERGED_RTOL) then
+                print *,"  KSP_CONVERGED_RTOL: Norm decreased by rtol."
+             else if (reason == KSP_CONVERGED_ATOL) then
+                print *,"  KSP_CONVERGED_ATOL: Norm is < abstol."
+             else if (reason == KSP_CONVERGED_ITS) then
+                print *,"  KSP_CONVERGED_ITS: "
+             else if (reason == KSP_CONVERGED_NEG_CURVE) then
+                print *,"  KSP_CONVERGED_CG_NEG_CURVE: "
+             else if (reason == KSP_CONVERGED_STEP_LENGTH) then
+                print *,"  KSP_CONVERGED_CG_CONSTRAINED: "
+             else if (reason == KSP_CONVERGED_HAPPY_BREAKDOWN) then
+                print *,"  KSP_CONVERGED_HAPPY_BREAKDOWN: "
+             end if
+#else
+             ! Older PETSc with integer values
              select case (reason)
              case (1)
                 print *,"  KSP_CONVERGED_RTOL_NORMAL: "
@@ -77,11 +107,37 @@
              case (8)
                 print *,"  KSP_CONVERGED_HAPPY_BREAKDOWN: "
              end select
+#endif
           end if
           didLinearCalculationConverge = integerToRepresentTrue
        else
           if (masterProc) then
              print *,"Linear iteration (KSP) did not converge :(   KSPConvergedReason = ", reason
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
+             ! Newer PETSc with enum types
+             if (reason == KSP_DIVERGED_NULL) then
+                print *,"  KSP_DIVERGED_NULL: "
+             else if (reason == KSP_DIVERGED_ITS) then
+                print *,"  KSP_DIVERGED_ITS: "
+             else if (reason == KSP_DIVERGED_DTOL) then
+                print *,"  KSP_DIVERGED_DTOL: "
+             else if (reason == KSP_DIVERGED_BREAKDOWN) then
+                print *,"  KSP_DIVERGED_BREAKDOWN: "
+             else if (reason == KSP_DIVERGED_BREAKDOWN_BICG) then
+                print *,"  KSP_DIVERGED_BREAKDOWN_BICG: "
+             else if (reason == KSP_DIVERGED_NONSYMMETRIC) then
+                print *,"  KSP_DIVERGED_NONSYMMETRIC: "
+             else if (reason == KSP_DIVERGED_INDEFINITE_PC) then
+                print *,"  KSP_DIVERGED_INDEFINITE_PC: "
+             else if (reason == KSP_DIVERGED_NANORINF) then
+                print *,"  KSP_DIVERGED_NAN: "
+             else if (reason == KSP_DIVERGED_INDEFINITE_MAT) then
+                print *,"  KSP_DIVERGED_INDEFINITE_MAT: "
+             else
+                print *,"  KSP still iterating ?!?!"
+             end if
+#else
+             ! Older PETSc with integer values
              select case (reason)
              case (-2)
                 print *,"  KSP_DIVERGED_NULL: "
@@ -104,6 +160,7 @@
              case (0)
                 print *,"  KSP still iterating ?!?!"
              end select
+#endif
           end if
           didLinearCalculationConverge = integerToRepresentFalse
        end if

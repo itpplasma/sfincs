@@ -4,6 +4,7 @@ module ambipolarSolver
 
   implicit none
 
+
   ! Initial guess for Er
   PetscScalar :: Er_init
 

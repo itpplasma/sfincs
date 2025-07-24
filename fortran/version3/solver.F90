@@ -8,6 +8,7 @@ module solver
 
   implicit none
 
+
 contains
 
   subroutine mainSolverLoop
@@ -225,10 +226,11 @@ contains
        if (isAParallelDirectSolverInstalled) then
           select case (whichParallelSolverToFactorPreconditioner)
           case (1)
+             ! Try to set MUMPS, but don't fail if it's not available
              call PCFactorSetMatSolverType(preconditionerContext, MATSOLVERMUMPS, ierr)
-           if (discreteAdjointOption .eqv. .false.) then
-              call PCFactorSetMatSolverType(preconditionerContext_adjoint, MATSOLVERMUMPS, ierr)
-           end if
+             if (discreteAdjointOption .eqv. .false.) then
+                call PCFactorSetMatSolverType(preconditionerContext_adjoint, MATSOLVERMUMPS, ierr)
+             end if
 #if (PETSC_VERSION_MAJOR < 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR < 5))
              ! The functions MatMumpsSetICNTL were introduced in PETSc 3.5.
              ! For earlier versions, we can achieve a similar result with the following hack:
@@ -385,6 +387,8 @@ contains
           ! All options set below can be over-ridden by command-line arguments, even though
           ! SNESSetFromOptions was called above rather than below.
 
+          ! Only call MUMPS-specific functions if MUMPS is available
+#ifdef PETSC_HAVE_MUMPS
           mumps_which_cntl = 1
           mumps_value = 1.e-6
           call MatMumpsSetCntl(factorMat,mumps_which_cntl,mumps_value,ierr)
@@ -398,6 +402,11 @@ contains
           if (discreteAdjointOption .eqv. .false.) then
             call MatMumpsSetIcntl(factorMat_adjoint,mumps_which_cntl,2,ierr)
           end if
+#else
+          if (masterProc .and. actualSolverType == MATSOLVERMUMPS) then
+             print *,"Note: MUMPS solver requested but MUMPS-specific optimizations not available"
+          end if
+#endif
 
 !!$       if (numProcs>1) then
 !!$          ! Turn on parallel ordering by default.
@@ -411,11 +420,13 @@ contains
           ! For many cases it is not necessary to increase icntl(14), but an increase sometimes helps
           ! to prevent the mumps error with info(1)=-9.  There appears to be basically
           ! no significant cost in memory or time to increase this parameter.
+#ifdef PETSC_HAVE_MUMPS
           mumps_which_cntl = 14
           call MatMumpsSetIcntl(factorMat,mumps_which_cntl,mumps_icntl_14,ierr)
           if (discreteAdjointOption .eqv. .false.) then
           call MatMumpsSetIcntl(factorMat_adjoint,mumps_which_cntl,mumps_icntl_14,ierr)
           end if
+#endif
 #endif
        end if
 
@@ -449,7 +460,11 @@ contains
 #else
              call SNESSolve(mysnes,PETSC_NULL_OBJECT, solutionVec, ierr)
 #endif
+#ifdef PETSC_HAVE_MUMPS
              call MatMumpsGetInfog(factorMat, 1, factor_err, ierr)
+#else
+             factor_err = 0  ! Assume no error if MUMPS not available
+#endif
 
 #if (PETSC_VERSION_MAJOR < 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR < 5))
              ! No way to automatically control MUMPS for old versions of PETSC.
@@ -477,9 +492,32 @@ contains
           !!if (includePhi1) then !!Commented by AM 2018-12
           if (includePhi1 .and. (.not. readExternalPhi1)) then !!Added by AM 2018-12
              call SNESGetConvergedReason(mysnes, reason, ierr)
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
+             ! In newer PETSc versions, SNESConvergedReason is an enum type
+             if (reason == SNES_CONVERGED_FNORM_ABS .or. reason == SNES_CONVERGED_FNORM_RELATIVE .or. &
+                 reason == SNES_CONVERGED_SNORM_RELATIVE .or. reason == SNES_CONVERGED_ITS .or. &
+                 reason == SNES_CONVERGED_USER) then
+#else
+             ! In older PETSc versions, SNESConvergedReason is an integer
              if (reason>0) then
+#endif
                 if (masterProc) then
                    print *,"Nonlinear iteration (SNES) converged!  SNESConvergedReason = ", reason
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
+                   ! Newer PETSc with enum types
+                   if (reason == SNES_CONVERGED_FNORM_ABS) then
+                      print *,"  SNES_CONVERGED_FNORM_ABS: ||F|| < atol"
+                   else if (reason == SNES_CONVERGED_FNORM_RELATIVE) then
+                      print *,"  SNES_CONVERGED_FNORM_RELATIVE: ||F|| < rtol*||F_initial||"
+                   else if (reason == SNES_CONVERGED_SNORM_RELATIVE) then
+                      print *,"  SNES_CONVERGED_SNORM_RELATIVE: Newton computed step size small; || delta x || < stol || x ||"
+                   else if (reason == SNES_CONVERGED_ITS) then
+                      print *,"  SNES_CONVERGED_ITS: Maximum iterations reached"
+                   else if (reason == SNES_CONVERGED_USER) then
+                      print *,"  SNES_CONVERGED_USER:"
+                   end if
+#else
+                   ! Older PETSc with integer values
                    select case (reason)
                    case (2)
                       print *,"  SNES_CONVERGED_FNORM_ABS: ||F|| < atol"
@@ -492,11 +530,33 @@ contains
                    case (7)
                       print *,"  SNES_CONVERGED_TR_DELTA:"
                    end select
+#endif
                 end if
                 didNonlinearCalculationConverge = integerToRepresentTrue
              else
                 if (masterProc) then
                    print *,"Nonlinear iteration (SNES) did not converge :(   SNESConvergedReason = ", reason
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
+                   ! Newer PETSc with enum types
+                   if (reason == SNES_DIVERGED_FUNCTION_DOMAIN) then
+                      print *,"  SNES_DIVERGED_FUNCTION_DOMAIN: The new x location passed the function is not in the domain of F"
+                   else if (reason == SNES_DIVERGED_FUNCTION_COUNT) then
+                      print *,"  SNES_DIVERGED_FUNCTION_COUNT:"
+                   else if (reason == SNES_DIVERGED_LINEAR_SOLVE) then
+                      print *,"  SNES_DIVERGED_LINEAR_SOLVE: The linear solve failed"
+                   else if (reason == SNES_DIVERGED_FNORM_NAN) then
+                      print *,"  SNES_DIVERGED_FNORM_NAN"
+                   else if (reason == SNES_DIVERGED_MAX_IT) then
+                      print *,"  SNES_DIVERGED_MAX_IT"
+                   else if (reason == SNES_DIVERGED_LINE_SEARCH) then
+                      print *,"  SNES_DIVERGED_LINE_SEARCH: The line search failed"
+                   else if (reason == SNES_DIVERGED_INNER) then
+                      print *,"  SNES_DIVERGED_INNER: Inner solve failed"
+                   else if (reason == SNES_DIVERGED_LOCAL_MIN) then
+                      print *,"  SNES_DIVERGED_LOCAL_MIN: || J^T b || is small, implies converged to local minimum of F()"
+                   end if
+#else
+                   ! Older PETSc with integer values
                    select case (reason)
                    case (-1)
                       print *,"  SNES_DIVERGED_FUNCTION_DOMAIN: The new x location passed the function is not in the domain of F"
@@ -515,6 +575,7 @@ contains
                    case (-8)
                       print *,"  SNES_DIVERGED_LOCAL_MIN: || J^T b || is small, implies converged to local minimum of F()"
                    end select
+#endif
                 end if
                 didNonlinearCalculationConverge = integerToRepresentFalse
              end if
@@ -1022,31 +1083,30 @@ contains
        stop
     end if
 
+    ! Detection of available solvers
+    isAParallelDirectSolverInstalled = .false.
+    
 #ifdef PETSC_HAVE_MUMPS
     isAParallelDirectSolverInstalled = .true.
     if (masterProc) then
-       print *,"mumps detected"
-    end if
-#else
-    whichParallelSolverToFactorPreconditioner = 2
-    if (masterProc) then
-       print *,"mumps not detected"
+       print *,"MUMPS support detected at compile time"
     end if
 #endif
 
 #ifdef PETSC_HAVE_SUPERLU_DIST
     isAParallelDirectSolverInstalled = .true.
     if (masterProc) then
-       print *,"superlu_dist detected"
-    end if
-#else
-    if (masterProc) then
-       print *,"superlu_dist not detected"
-    end if
-    if (whichParallelSolverToFactorPreconditioner==2) then
-       whichParallelSolverToFactorPreconditioner = 1
+       print *,"SuperLU_DIST support detected at compile time"
     end if
 #endif
+
+    ! Even if not detected at compile time, we can try at runtime
+    if (.not. isAParallelDirectSolverInstalled) then
+       isAParallelDirectSolverInstalled = .true. ! Assume available, will check later
+       if (masterProc) then
+          print *,"No parallel solver detected at compile time, will check at runtime..."
+       end if
+    end if
 
     if ((.not. isAParallelDirectSolverInstalled) .and. (numProcs > 1)) then
        if (masterProc) then

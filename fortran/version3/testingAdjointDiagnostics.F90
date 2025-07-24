@@ -6,6 +6,7 @@ module testingAdjointDiagnostics
 
   implicit none
 
+
   contains
 
   function percentError(resultAnalytic,resultFiniteDiff)

@@ -4,6 +4,7 @@ module sfincs_main
 
   implicit none
 
+
   contains
 
   subroutine sfincs_init(MPI_comm_to_use)

@@ -4,6 +4,7 @@ module adjointDiagnostics
 
 implicit none
 
+
   contains
 
     subroutine computedRadialCurrentdEr(solutionVec,adjointSolutionJr)
