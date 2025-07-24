@@ -6,7 +6,7 @@ set -e  # Exit on error
 
 # Configuration
 INSTALL_DIR="$(pwd)/thirdparty"
-PETSC_VERSION="3.22.6"  # Stable version known to work well with MUMPS
+PETSC_VERSION="3.23.4"  # Latest stable version that fixes Python xdrlib issues
 PETSC_DIR="${INSTALL_DIR}/petsc-${PETSC_VERSION}"
 PETSC_ARCH="arch-macos-opt"
 
