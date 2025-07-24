@@ -460,11 +460,7 @@ contains
 #else
              call SNESSolve(mysnes,PETSC_NULL_OBJECT, solutionVec, ierr)
 #endif
-#ifdef PETSC_HAVE_MUMPS
              call MatMumpsGetInfog(factorMat, 1, factor_err, ierr)
-#else
-             factor_err = 0  ! Assume no error if MUMPS not available
-#endif
 
 #if (PETSC_VERSION_MAJOR < 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR < 5))
              ! No way to automatically control MUMPS for old versions of PETSC.
