@@ -54,6 +54,8 @@
       hdf5 = pkgs.hdf5-fortran;
       netcdf = pkgs.netcdf;
       netcdffortran = pkgs.netcdffortran;
+      python = pkgs.python3;
+      hdf5Tools = pkgs.hdf5;
       buildTools = [
         pkgs.gnumake
         pkgs.pkg-config
@@ -91,9 +93,14 @@
         version = "unstable";
         src = ./.;
         strictDeps = true;
+        doCheck = true;
 
         nativeBuildInputs = buildTools;
         buildInputs = buildLibs;
+        nativeCheckInputs = [
+          python
+          hdf5Tools
+        ];
         configurePhase = ":";
 
         buildPhase = ''
@@ -101,6 +108,14 @@
           export SFINCS_SYSTEM=nix
           make -C fortran/version3 clean
           make -C fortran/version3 -j$NIX_BUILD_CORES
+        '';
+
+        checkPhase = ''
+          ${commonEnv}
+          export SFINCS_SYSTEM=nix
+          patchShebangs fortran/version3/examples
+          find fortran/version3/examples -name 'job.CI' -execdir ln -sf job.CI job.nix ';'
+          make -C fortran/version3 test
         '';
 
         installPhase = ''
