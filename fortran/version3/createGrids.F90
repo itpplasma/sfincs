@@ -32,7 +32,7 @@
     character(len=bufferLength) :: procAssignments
 
     integer :: tag, dummy(1)
-    integer :: status(MPI_STATUS_SIZE)
+    type(MPI_Status) :: status
     integer :: im, imn, jn
 
 

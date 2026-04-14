@@ -446,7 +446,7 @@ module globalVariables
   !
   ! ********************************************************
 
-  MPI_Comm :: MPIComm
+  type(MPI_Comm) :: MPIComm
   integer :: numProcs, myRank 
   logical :: masterProc
 

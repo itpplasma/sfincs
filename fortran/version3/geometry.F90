@@ -45,7 +45,7 @@ contains
     integer, dimension(4) :: headerIntegers
     PetscScalar, dimension(3) :: headerReals
     integer :: tag, dummy(1), i
-    integer :: status(MPI_STATUS_SIZE)
+    type(MPI_Status) :: status
 
     select case (geometryScheme)
     case (1)
