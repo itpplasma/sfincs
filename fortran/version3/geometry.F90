@@ -13,6 +13,7 @@ module geometry
 
 #include "PETScVersions.F90"
 
+  use mpi_f08
   use globalVariables
   use radialCoordinates
   use petscsysdef

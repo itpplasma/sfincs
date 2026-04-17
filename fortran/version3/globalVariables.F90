@@ -2,6 +2,8 @@ module globalVariables
 
 #include "PETScVersions.F90"
 
+  use mpi_f08
+
   implicit none
 
 
