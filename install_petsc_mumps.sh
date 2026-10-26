@@ -7,7 +7,8 @@ set -e  # Exit on error
 # Configuration
 INSTALL_DIR="$(pwd)/thirdparty"
 PETSC_VERSION="3.23.4"  # Latest stable version that fixes Python xdrlib issues
-PETSC_DIR="${INSTALL_DIR}/petsc-${PETSC_VERSION}"
+PETSC_SRC_DIR="${INSTALL_DIR}/petsc-${PETSC_VERSION}"
+PETSC_DIR="${INSTALL_DIR}/petsc"
 PETSC_ARCH="arch-macos-opt"
 
 # Colors for output
@@ -39,7 +40,7 @@ echo -e "${YELLOW}Configuring PETSc...${NC}"
 echo -e "${YELLOW}This will download and build MUMPS, ScaLAPACK, and other dependencies${NC}"
 
 ./configure \
-  --prefix=${PETSC_DIR}/${PETSC_ARCH} \
+  --prefix=${PETSC_DIR} \
   --with-debugging=0 \
   --with-shared-libraries=1 \
   --with-scalar-type=real \
@@ -52,28 +53,30 @@ echo -e "${YELLOW}This will download and build MUMPS, ScaLAPACK, and other depen
   --download-parmetis=1 \
   --download-metis=1 \
   --download-ptscotch=1 \
+  --download-bison=1 \
   --download-fblaslapack=1 \
-  --with-hdf5-dir=/opt/homebrew/opt/hdf5-mpi \
-  --with-netcdf-dir=/opt/homebrew \
+  --download-hdf5=1 \
+  --download-zlib=1 \
+  --download-netcdf=1 \
   PETSC_ARCH=${PETSC_ARCH}
 
 # Build PETSc
 echo -e "${YELLOW}Building PETSc (this may take a while)...${NC}"
-make PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH} all
+make PETSC_DIR=${PETSC_SRC_DIR} PETSC_ARCH=${PETSC_ARCH} all
 
 # Test PETSc installation
 echo -e "${YELLOW}Testing PETSc installation...${NC}"
-make PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH} check
+make PETSC_DIR=${PETSC_SRC_DIR} PETSC_ARCH=${PETSC_ARCH} check
 
 # Install PETSc
 echo -e "${YELLOW}Installing PETSc...${NC}"
-make PETSC_DIR=${PETSC_DIR} PETSC_ARCH=${PETSC_ARCH} install
+make PETSC_DIR=${PETSC_SRC_DIR} PETSC_ARCH=${PETSC_ARCH} install
 
 echo -e "${GREEN}PETSc installation complete!${NC}"
-echo -e "${GREEN}Installation directory: ${PETSC_DIR}/${PETSC_ARCH}${NC}"
+echo -e "${GREEN}Installation directory: ${PETSC_DIR}${NC}"
 echo ""
 echo -e "${YELLOW}To use this PETSc installation with SFINCS:${NC}"
-echo "export PETSC_DIR=${PETSC_DIR}/${PETSC_ARCH}"
+echo "export PETSC_DIR=${PETSC_DIR}"
 echo "export SFINCS_SYSTEM=local_petsc"
 echo "cd fortran/version3"
 echo "make clean && make"
