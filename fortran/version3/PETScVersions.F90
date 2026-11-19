@@ -42,12 +42,12 @@
 #endif
 !Hereafter in this code, use MatSolverType.
 
-! For newer PETSc versions, some Fortran interfaces have changed
-#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 19))
-! In newer versions, use VecGetArrayF90 directly from the module
-#else
-! For older versions, the interface might be different
+! From PETSc 3.23, VecGetArray and VecRestoreArray take a Fortran pointer and the F90 names are deprecated.
+#if (PETSC_VERSION_MAJOR > 3 || (PETSC_VERSION_MAJOR==3 && PETSC_VERSION_MINOR >= 23))
+#define VecGetArrayF90 VecGetArray
+#define VecRestoreArrayF90 VecRestoreArray
 #endif
+!Hereafter in this code, use VecGetArrayF90 and VecRestoreArrayF90.
 
 ! The remaining code ensures that the proper PETSc include files and modules are included in every subroutine by including just one line:
 ! #include "PETScVersions.F90"
