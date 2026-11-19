@@ -41,7 +41,9 @@ contains
     implicit none
 
     integer :: fileUnit, didFileAccessWork, Turkin_sign, ierr, iopen
-    character(len=200) :: lineOfFile
+    ! Lines of .bc files with 10 columns of full-precision numbers exceed 200
+    ! characters; a shorter buffer truncated their last number.
+    character(len=4096) :: lineOfFile
     integer, dimension(4) :: headerIntegers
     PetscScalar, dimension(3) :: headerReals
     integer :: tag, dummy(1), i
@@ -357,7 +359,9 @@ contains
     PetscScalar, dimension(:,:), allocatable :: gradpsiX, gradpsiY, gradpsiZ, CX, CY, CZ
     
     integer :: fileUnit, didFileAccessWork
-    character(len=200) :: lineOfFile
+    ! Lines of .bc files with 10 columns of full-precision numbers exceed 200
+    ! characters; a shorter buffer truncated their last number.
+    character(len=4096) :: lineOfFile
     integer, dimension(4) :: headerIntegers
     PetscScalar, dimension(3) :: headerReals
     PetscScalar, dimension(6) :: surfHeader
@@ -3032,7 +3036,9 @@ contains
 
     character(len=200) :: bcdatFile
     integer :: fileUnit, didFileAccessWork
-    character(len=200) :: lineOfFile
+    ! Lines of .bc files with 10 columns of full-precision numbers exceed 200
+    ! characters; a shorter buffer truncated their last number.
+    character(len=4096) :: lineOfFile
     integer, dimension(4) :: headerIntegers
     PetscScalar, dimension(3) :: headerReals
     integer :: bcStelSym, dataStelSym
