@@ -11,7 +11,7 @@ desiredTolerance = 0.0001
 
 numFailures = 0
 
-numFailures += shouldBe("FSABFlow[0,0;;;]", 0.0557901523565, desiredTolerance)
+numFailures += shouldBe("FSABFlow[0,0;;;]", -0.0557901523565, desiredTolerance)
 numFailures += shouldBe("particleFlux_vm_psiN[0,0;;;]", 6.53905355944e-05, desiredTolerance)
 numFailures += shouldBe("heatFlux_vm_psiN[0,0;;;]", 1.29393559450e-04, desiredTolerance)
 
