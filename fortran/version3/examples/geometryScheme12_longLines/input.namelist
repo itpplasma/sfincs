@@ -1,0 +1,29 @@
+&general
+RHSMode=1,
+/
+&geometryParameters
+geometryScheme=12, equilibriumFile="helical_long_lines.bc", inputRadialCoordinate=1, psiN_wish=0.5,
+inputRadialCoordinateForGradients=1, min_Bmn_to_load=0,
+/
+&speciesParameters
+Zs=1, mHats=1, nHats=1, THats=1, dNHatdpsiNs=-1, dTHatdpsiNs=0,
+/
+&physicsParameters
+nu_n=0.005, Delta=0.0091365219824869892, alpha=1,
+dPhiHatdpsiN=0, collisionOperator=1,
+constraintScheme=2,
+includeXDotTerm=.false., includeElectricFieldTermInXiDot=.false.,
+useDKESExBDrift=.true., includePhi1=.false., magneticDriftScheme=0,
+/
+&resolutionParameters
+Ntheta=11,Nzeta=7,Nxi=24,Nx=16,solverTolerance=1e-10,
+/
+&otherNumericalParameters
+thetaDerivativeScheme=0,zetaDerivativeScheme=0,
+Nxi_for_x_option=0,
+useIterativeLinearSolver=.true.,
+/
+&preconditionerOptions
+/
+&export_f
+/
