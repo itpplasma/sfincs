@@ -1,0 +1,33 @@
+&general
+RHSMode=1,
+/
+&geometryParameters
+geometryScheme=1, epsilon_t=-0.12, epsilon_h=-0.04, epsilon_antisymm=0.02,
+helicity_l=1, helicity_n=3, helicity_antisymm_l=2, helicity_antisymm_n=3,
+iota=1.25, GHat=6, IHat=0.3, B0OverBBar=1,
+inputRadialCoordinateForGradients=0,
+/
+&speciesParameters
+Zs=1, mHats=1, nHats=1, THats=1, dNHatdpsiHats=1, dTHatdpsiHats=0,
+/
+&physicsParameters
+nu_n=0.005, Delta=0.0091365219824869892, alpha=1,
+dPhiHatdpsiHat=0, collisionOperator=0,
+constraintScheme=2,
+includeXDotTerm=.false., includeElectricFieldTermInXiDot=.false.,
+useDKESExBDrift=.true., includePhi1=.true., readExternalPhi1=.true.,
+includePhi1InKineticEquation=.true., includePhi1InCollisionOperator=.false.,
+magneticDriftScheme=0,
+/
+&resolutionParameters
+Ntheta=11,Nzeta=7,Nxi=24,Nx=16,solverTolerance=1e-10,
+/
+&otherNumericalParameters
+thetaDerivativeScheme=0,zetaDerivativeScheme=0,
+Nxi_for_x_option=0,
+useIterativeLinearSolver=.false.,
+/
+&preconditionerOptions
+/
+&export_f
+/
