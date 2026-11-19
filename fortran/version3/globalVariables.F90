@@ -201,6 +201,13 @@ module globalVariables
   logical :: useIterativeLinearSolver=.true.
 
   integer :: whichParallelSolverToFactorPreconditioner = 1
+  ! MUMPS pivoting threshold CNTL(1). The MUMPS default 0.01 keeps the
+  ! factorization stable. The former hard-coded 1e-6 saved memory but left
+  ! linear solves with relative residuals up to 1e-2 and wrong results without
+  ! a warning, e.g. when includePhi1 changes the sparsity pattern.
+  PetscReal :: mumps_cntl_1 = 1.0d-2
+  ! Initial SNES residual norm, to judge the accuracy of a single linear step.
+  PetscReal :: initialResidualNorm = -1
   ! Options for whichParallelSolverToFactorPreconditioner:
   ! 1 = use mumps if it is detected, otherwise use superlu_dist
   ! 2 = force use of superlu_dist, if it is available

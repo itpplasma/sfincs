@@ -3,7 +3,8 @@
 
 #include "PETScVersions.F90"
 
-    use globalVariables, only: masterProc, iterationForMatrixOutput
+    use globalVariables, only: masterProc, iterationForMatrixOutput, includePhi1, &
+         readExternalPhi1, solverTolerance, initialResidualNorm
     
     implicit none
 
@@ -24,7 +25,17 @@
     end if
 
     if (iterationNum==0) then
+       initialResidualNorm = residual
        return
+    end if
+
+    ! A linear run takes one step, so its accuracy is the residual after it.
+    if (masterProc .and. iterationNum==1 .and. ((.not. includePhi1) .or. readExternalPhi1) &
+         .and. initialResidualNorm > 0) then
+       if (residual > max(solverTolerance, 1d-8)*initialResidualNorm) then
+          print *,"**   WARNING: The linear solve left a relative residual of ", residual/initialResidualNorm
+          print *,"**   The result is inaccurate. For a direct solve with mumps, increase mumps_cntl_1."
+       end if
     end if
 
 

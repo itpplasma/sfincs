@@ -85,7 +85,7 @@ contains
          ExBDerivativeSchemeTheta, ExBDerivativeSchemeZeta, &
          xDotDerivativeScheme, xGridScheme, whichParallelSolverToFactorPreconditioner, &
          PETSCPreallocationStrategy, xPotentialsGridScheme, xGrid_k, magneticDriftDerivativeScheme, &
-         Nxi_for_x_option
+         Nxi_for_x_option, mumps_cntl_1
 
     namelist / preconditionerOptions / preconditioner_x, preconditioner_x_min_L, preconditioner_zeta, &
          preconditioner_theta, preconditioner_xi, preconditioner_species, reusePreconditioner, &

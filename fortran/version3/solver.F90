@@ -367,7 +367,9 @@ contains
           ! CNTL(1) is a threshhold for pivoting. For the default value of 0.01, there is a lot of pivoting.
           ! This causes memory demands to increase beyond mumps's initial estimate, causing errors (INFO(1)=-9).
           ! If we set CNTL(1) all the way to 0, there is sometimes an error about a zero pivot.
-          ! The setting CNTL(1)=1e-6 seems robust.
+          ! CNTL(1)=1e-6 was used here for memory, but it gives inaccurate factorizations:
+          ! single-step linear solves left relative residuals of 1e-3 to 1e-2. CNTL(1) is
+          ! now the input mumps_cntl_1 with the MUMPS default 0.01.
           ! I notice that if CNTL(1) is smaller, like 1e-15, the Fokker-Planck calculations work find but pitch-angle-scattering calculations
           ! fail. There might be value in using different values of CNTL(1) for FP vs PAS.
 
@@ -390,7 +392,7 @@ contains
           ! Only call MUMPS-specific functions if MUMPS is available
 #ifdef PETSC_HAVE_MUMPS
           mumps_which_cntl = 1
-          mumps_value = 1.e-6
+          mumps_value = mumps_cntl_1
           call MatMumpsSetCntl(factorMat,mumps_which_cntl,mumps_value,ierr)
           if (discreteAdjointOption .eqv. .false.) then
             call MatMumpsSetCntl(factorMat_adjoint,mumps_which_cntl,mumps_value,ierr)
@@ -697,6 +699,7 @@ contains
              call PetscTime(time1, ierr)
 
              call checkIfKSPConverged(KSPInstance)
+             if (solveSystem) call checkTrueResidual(KSPInstance, residualVec, solutionVec)
 
              ! Compute flows, fluxes, etc.:
              call diagnostics(solutionVec, whichRHS)
@@ -1129,6 +1132,32 @@ contains
   end subroutine chooseParallelDirectSolver
 
 
+
+  ! A direct solve (KSPPREONLY) reports success whatever the accuracy of the
+  ! factorization, so compare |A x - b| with |b| and warn above tolerance.
+  subroutine checkTrueResidual(ksp, b, x)
+    use globalVariables, only: masterProc, solverTolerance
+    implicit none
+    KSP :: ksp
+    Vec :: b, x
+    Mat :: Amat, Pmat
+    Vec :: r
+    PetscReal :: norm_r, norm_b
+    PetscErrorCode :: ierr
+    call KSPGetOperators(ksp, Amat, Pmat, ierr)
+    call VecDuplicate(b, r, ierr)
+    call MatMult(Amat, x, r, ierr)
+    call VecAXPY(r, -1d+0, b, ierr)
+    call VecNorm(r, NORM_2, norm_r, ierr)
+    call VecNorm(b, NORM_2, norm_b, ierr)
+    call VecDestroy(r, ierr)
+    if (masterProc) then
+       print *,"Relative true residual of the linear solve: ", norm_r/max(norm_b, tiny(norm_b))
+       if (norm_r > max(solverTolerance, 1d-8)*norm_b) then
+          print *,"**   WARNING: The linear solve is inaccurate. For a direct solve with mumps, increase mumps_cntl_1."
+       end if
+    end if
+  end subroutine checkTrueResidual
 
 end module solver
 
