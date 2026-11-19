@@ -1024,7 +1024,16 @@ contains
        B0OverBBar = B0_old*RadialWeight+B0_new*(1.0-RadialWeight)
        R0         = R0_old*RadialWeight+R0_new*(1.0-RadialWeight)
        pPrimeHat = pPrimeHat_old*RadialWeight+pPrimeHat_new*(1.0-RadialWeight)
-       
+
+       ! .bc producers differ in the sign of the flux, while the currents fix the field.
+       ! The radial drift needs sign(psiAHat) = sign(GHat+iota*IHat) after the toroidal
+       ! sign switch below, which reverses GHat+iota*IHat.
+       if ((GHat + iota*IHat)*psiAHat > 0) then
+          psiAHat = -psiAHat
+          DeltapsiHat = -DeltapsiHat
+          pPrimeHat = -pPrimeHat
+       end if
+
        B0OverBBarL=B0_old
        B0OverBBarH=B0_new
        R0L=R0_old
